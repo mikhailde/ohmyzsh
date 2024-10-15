@@ -90,12 +90,22 @@ function _add_identities() {
     if [[ -z "${commands[$helper]}" ]]; then
       echo >&2 "ssh-agent: the helper '$helper' has not been found."
     else
-      SSH_ASKPASS="$helper" ssh-add "${args[@]}" ${^not_loaded} < /dev/null
+      # Redirect stderr to /dev/null if quiet is enabled
+      if zstyle -t :omz:plugins:ssh-agent quiet; then
+        SSH_ASKPASS="$helper" ssh-add "${args[@]}" ${^not_loaded} < /dev/null 2>/dev/null
+      else
+        SSH_ASKPASS="$helper" ssh-add "${args[@]}" ${^not_loaded} < /dev/null
+      fi
       return $?
     fi
   fi
 
-  ssh-add "${args[@]}" ${^not_loaded}
+  # Redirect stderr to /dev/null if quiet is enabled
+  if zstyle -t :omz:plugins:ssh-agent quiet; then
+    ssh-add "${args[@]}" ${^not_loaded} 2>/dev/null
+  else
+    ssh-add "${args[@]}" ${^not_loaded}
+  fi
 }
 
 # Add a nifty symlink for screen/tmux if agent forwarding is enabled
